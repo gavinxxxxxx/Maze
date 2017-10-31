@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Random;
 
 import me.gavin.game.maze.util.DisplayUtil;
-import me.gavin.game.maze.util.L;
 
 /**
  * MazeView
@@ -27,7 +26,7 @@ public class MazeView extends View {
     private float cw;
     private float ww;
 
-    private Paint paint, paint2;
+    private Paint paint;
 
     public MazeView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -35,9 +34,6 @@ public class MazeView extends View {
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setColor(Color.BLACK);
-        paint2 = new Paint();
-        paint2.setAntiAlias(true);
-        paint2.setColor(Color.TRANSPARENT);
     }
 
     @Override
@@ -54,17 +50,19 @@ public class MazeView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (isInEditMode()) {
-            return;
-        }
+        if (isInEditMode()) return;
         Cell[][] cells = prim();
         for (int i = 0; i < count; i++) {
             for (int j = 0; j < count; j++) {
                 Cell cell = cells[i][j];
-                canvas.drawRect(i * cw, j * cw - ww, i * cw + ww, j * cw + cw + ww, cell.containFlag(Cell.FLAG_LEFT) ? paint2 : paint);
-                canvas.drawRect(i * cw - ww, j * cw, i * cw + cw + ww, j * cw + ww, cell.containFlag(Cell.FLAG_TOP) ? paint2 : paint);
-                canvas.drawRect(i * cw + cw - ww, j * cw - ww, i * cw + cw, j * cw + cw + ww, cell.containFlag(Cell.FLAG_RIGHT) ? paint2 : paint);
-                canvas.drawRect(i * cw - ww, j * cw + cw - ww, i * cw + cw + ww, j * cw + cw, cell.containFlag(Cell.FLAG_BOTTOM) ? paint2 : paint);
+                if (!cell.containFlag(Cell.FLAG_LEFT))
+                    canvas.drawRect(i * cw, j * cw - ww, i * cw + ww, j * cw + cw + ww, paint);
+                if (!cell.containFlag(Cell.FLAG_TOP))
+                    canvas.drawRect(i * cw - ww, j * cw, i * cw + cw + ww, j * cw + ww, paint);
+                if (!cell.containFlag(Cell.FLAG_RIGHT))
+                    canvas.drawRect(i * cw + cw - ww, j * cw - ww, i * cw + cw, j * cw + cw + ww, paint);
+                if (!cell.containFlag(Cell.FLAG_BOTTOM))
+                    canvas.drawRect(i * cw - ww, j * cw + cw - ww, i * cw + cw + ww, j * cw + cw, paint);
             }
         }
     }
@@ -76,11 +74,10 @@ public class MazeView extends View {
                 cells[i][j] = new Cell();
                 cells[i][j].x = i;
                 cells[i][j].y = j;
-                if (i == 0 && j == 0) {
+                if (i == 0 && j == 0)
                     cells[i][j].addFlag(Cell.FLAG_LEFT);
-                } else if (i == count - 1 && j == count - 1) {
+                else if (i == count - 1 && j == count - 1)
                     cells[i][j].addFlag(Cell.FLAG_RIGHT);
-                }
             }
         }
         List<Cell> yet = new ArrayList<>();
@@ -90,23 +87,17 @@ public class MazeView extends View {
 
         Random random = new Random(System.nanoTime());
         List<Cell> neighbor = new ArrayList<>();
-        int sum = 0;
         while (yet.size() < count * count) {
-            sum++;
             Cell curr = able.get(random.nextInt(able.size()));
             neighbor.clear();
-            if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y])) {
+            if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y]))
                 neighbor.add(cells[curr.x - 1][curr.y]);
-            }
-            if (curr.x < count - 1 && !yet.contains(cells[curr.x + 1][curr.y])) {
+            if (curr.x < count - 1 && !yet.contains(cells[curr.x + 1][curr.y]))
                 neighbor.add(cells[curr.x + 1][curr.y]);
-            }
-            if (curr.y > 0 && !yet.contains(cells[curr.x][curr.y - 1])) {
+            if (curr.y > 0 && !yet.contains(cells[curr.x][curr.y - 1]))
                 neighbor.add(cells[curr.x][curr.y - 1]);
-            }
-            if (curr.y < count - 1 && !yet.contains(cells[curr.x][curr.y + 1])) {
+            if (curr.y < count - 1 && !yet.contains(cells[curr.x][curr.y + 1]))
                 neighbor.add(cells[curr.x][curr.y + 1]);
-            }
             if (neighbor.isEmpty()) {
                 able.remove(curr);
                 continue;
@@ -128,7 +119,6 @@ public class MazeView extends View {
             yet.add(next);
             able.add(next);
         }
-        L.e(sum);
         return cells;
     }
 }
