@@ -17,6 +17,11 @@ public class Cell {
 
     private int flag;
 
+    public Cell(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     void addFlag(int flag) {
         this.flag |= flag;
     }
@@ -25,8 +30,19 @@ public class Cell {
         return (this.flag & flag) == flag;
     }
 
-    @Override
-    public String toString() {
-        return x + ":" + y;
+    boolean leftOf(Cell o) {
+        return o.x - x == 1;
+    }
+
+    boolean rightOf(Cell o) {
+        return x - o.x == 1;
+    }
+
+    boolean topOf(Cell o) {
+        return o.y - y == 1;
+    }
+
+    boolean bottomOf(Cell o) {
+        return y - o.y == 1;
     }
 }

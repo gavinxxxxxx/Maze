@@ -2,17 +2,14 @@ package me.gavin.game.maze;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.annotation.Nullable;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import me.gavin.game.maze.util.DisplayUtil;
+import me.gavin.game.rocker.IntConsumer;
 
 /**
  * MazeView
@@ -21,19 +18,75 @@ import me.gavin.game.maze.util.DisplayUtil;
  */
 public class MazeView extends View {
 
-    private final int count = 30;
+    private final float mBorderWidth = 20;
 
-    private float cw;
-    private float ww;
+    private int count = 30;
+    private Cell[][] mCells;
 
-    private Paint paint;
+    private float mCellWidth;
+    private final float mWellScale = 0.2f;
 
-    public MazeView(Context context, @Nullable AttributeSet attrs) {
+    private Paint mBorderPaint, mWellPaint, mCursorPaint;
+    private Path mBorderPath, mWellPath;
+
+    private Point mCursorPoint;
+
+    private boolean isReady;
+
+    private IntConsumer mCallback;
+
+    public MazeView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        if (isInEditMode()) return;
         setKeepScreenOn(true);
-        paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setColor(Color.BLACK);
+
+        mBorderPaint = new Paint();
+        mBorderPaint.setColor(0xFFAA66CC);
+        mBorderPath = new Path();
+
+        mWellPaint = new Paint();
+        mWellPaint.setAntiAlias(true);
+        mWellPaint.setColor(0xFFAA66CC);
+        mWellPaint.setStyle(Paint.Style.STROKE);
+        mWellPaint.setStrokeJoin(Paint.Join.ROUND);
+        mWellPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        mCursorPaint = new Paint();
+        mCursorPaint.setAntiAlias(true);
+        mCursorPaint.setColor(0xFFFF4444);
+    }
+
+    public void setCells(Cell[][] cells, IntConsumer callback) {
+        this.mCells = cells;
+        this.mCallback = callback;
+        if (cells != null) {
+            this.count = cells.length;
+
+            mCellWidth = (getWidth() - mBorderWidth * 2) / count;
+
+            mBorderPath.reset();
+            mBorderPath.moveTo(0, 0);
+            mBorderPath.rLineTo(mBorderWidth, 0);
+            mBorderPath.rLineTo(0, getWidth() - mBorderWidth);
+            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth, 0);
+            mBorderPath.rLineTo(0, mBorderWidth);
+            mBorderPath.rLineTo(-getWidth() + mBorderWidth + mCellWidth, 0);
+            mBorderPath.rLineTo(0, -getWidth());
+            mBorderPath.rMoveTo(mBorderWidth + mCellWidth, 0);
+            mBorderPath.rLineTo(0, mBorderWidth);
+            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth, 0);
+            mBorderPath.rLineTo(0, getWidth() - mBorderWidth);
+            mBorderPath.rLineTo(mBorderWidth, 0);
+            mBorderPath.rLineTo(0, -getWidth());
+            mBorderPath.close();
+
+            mWellPaint.setStrokeWidth(mCellWidth * mWellScale);
+            mWellPath = Utils.toPath(cells, mCellWidth, mBorderWidth);
+
+            mCursorPoint = new Point(0, 0);
+        }
+        invalidate();
+        isReady = cells != null;
     }
 
     @Override
@@ -43,82 +96,54 @@ public class MazeView extends View {
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        cw = w * 1f / count;
-        ww = cw * 0.1f;
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
-        if (isInEditMode()) return;
-        Cell[][] cells = prim();
-        for (int i = 0; i < count; i++) {
-            for (int j = 0; j < count; j++) {
-                Cell cell = cells[i][j];
-                if (!cell.containFlag(Cell.FLAG_LEFT))
-                    canvas.drawRect(i * cw, j * cw - ww, i * cw + ww, j * cw + cw + ww, paint);
-                if (!cell.containFlag(Cell.FLAG_TOP))
-                    canvas.drawRect(i * cw - ww, j * cw, i * cw + cw + ww, j * cw + ww, paint);
-                if (!cell.containFlag(Cell.FLAG_RIGHT))
-                    canvas.drawRect(i * cw + cw - ww, j * cw - ww, i * cw + cw, j * cw + cw + ww, paint);
-                if (!cell.containFlag(Cell.FLAG_BOTTOM))
-                    canvas.drawRect(i * cw - ww, j * cw + cw - ww, i * cw + cw + ww, j * cw + cw, paint);
-            }
+        if (isInEditMode() || mCells == null) return;
+        // 画边界
+        canvas.drawPath(mBorderPath, mBorderPaint);
+        // 画迷宫墙
+        canvas.drawPath(mWellPath, mWellPaint);
+        // 画游标
+        canvas.drawCircle(mBorderWidth + mCursorPoint.x * mCellWidth + mCellWidth / 2, mBorderWidth + mCursorPoint.y * mCellWidth + mCellWidth / 2, mCellWidth / 3, mCursorPaint);
+    }
+
+    public void left() {
+        if (isReady && mCursorPoint.x > 0 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_LEFT)) {
+            mCursorPoint.offset(-1, 0);
+            invalidate();
+            check();
         }
     }
 
-    private Cell[][] prim() {
-        Cell[][] cells = new Cell[count][count];
-        for (int i = 0; i < count; i++) {
-            for (int j = 0; j < count; j++) {
-                cells[i][j] = new Cell();
-                cells[i][j].x = i;
-                cells[i][j].y = j;
-                if (i == 0 && j == 0)
-                    cells[i][j].addFlag(Cell.FLAG_LEFT);
-                else if (i == count - 1 && j == count - 1)
-                    cells[i][j].addFlag(Cell.FLAG_RIGHT);
-            }
+    public void up() {
+        if (isReady && mCursorPoint.y > 0 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_TOP)) {
+            mCursorPoint.offset(0, -1);
+            invalidate();
+            check();
         }
-        List<Cell> yet = new ArrayList<>();
-        yet.add(cells[0][0]);
-        List<Cell> able = new ArrayList<>();
-        able.add(cells[0][0]);
+    }
 
-        Random random = new Random(System.nanoTime());
-        List<Cell> neighbor = new ArrayList<>();
-        while (yet.size() < count * count) {
-            Cell curr = able.get(random.nextInt(able.size()));
-            neighbor.clear();
-            if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y]))
-                neighbor.add(cells[curr.x - 1][curr.y]);
-            if (curr.x < count - 1 && !yet.contains(cells[curr.x + 1][curr.y]))
-                neighbor.add(cells[curr.x + 1][curr.y]);
-            if (curr.y > 0 && !yet.contains(cells[curr.x][curr.y - 1]))
-                neighbor.add(cells[curr.x][curr.y - 1]);
-            if (curr.y < count - 1 && !yet.contains(cells[curr.x][curr.y + 1]))
-                neighbor.add(cells[curr.x][curr.y + 1]);
-            if (neighbor.isEmpty()) {
-                able.remove(curr);
-                continue;
-            }
-            Cell next = neighbor.get(random.nextInt(neighbor.size()));
-            if (next.x - curr.x == 1) {
-                curr.addFlag(Cell.FLAG_RIGHT);
-                next.addFlag(Cell.FLAG_LEFT);
-            } else if (next.x - curr.x == -1) {
-                curr.addFlag(Cell.FLAG_LEFT);
-                next.addFlag(Cell.FLAG_RIGHT);
-            } else if (next.y - curr.y == 1) {
-                curr.addFlag(Cell.FLAG_BOTTOM);
-                next.addFlag(Cell.FLAG_TOP);
-            } else if (next.y - curr.y == -1) {
-                curr.addFlag(Cell.FLAG_TOP);
-                next.addFlag(Cell.FLAG_BOTTOM);
-            }
-            yet.add(next);
-            able.add(next);
+    public void right() {
+        if (isReady && mCursorPoint.x < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_RIGHT)) {
+            mCursorPoint.offset(1, 0);
+            invalidate();
+            check();
         }
-        return cells;
+    }
+
+    public void down() {
+        if (isReady && mCursorPoint.y < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_BOTTOM)) {
+            mCursorPoint.offset(0, 1);
+            invalidate();
+            check();
+        }
+    }
+
+    public void check() {
+        if (mCursorPoint.x == count - 1 && mCursorPoint.y == count - 1) {
+            isReady = false;
+            if (mCallback != null) {
+                mCallback.accept(count);
+            }
+        }
     }
 }
