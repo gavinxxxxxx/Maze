@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
                     break;
             }
         });
-        createMaze(SPUtil.getInt("lineCount", 10));
+        createMaze(SPUtil.getInt("lineCount", 2));
     }
 
     public void createMaze(int count) {
@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
                     .setPositiveButton("去评价", (dialog, which)
                             -> goToMarket())
                     .setNegativeButton("再来一局", (dialog, which)
-                            -> createMaze(count + 10))
+                            -> createMaze(count + 2))
                     .setNeutralButton("自定义", (dialog, which)
                             -> showDiyDialog())
                     .show();
@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
                     .setTitle("恭喜过关")
                     .setMessage("少年看你骨骼惊奇，不如再来一局？")
                     .setPositiveButton("再来一局", (dialog, which)
-                            -> createMaze(count + 10))
+                            -> createMaze(count + 2))
                     .setNegativeButton("取消", null)
                     .setNeutralButton("自定义", (dialog, which)
                             -> showDiyDialog())

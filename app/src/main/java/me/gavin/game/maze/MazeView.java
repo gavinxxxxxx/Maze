@@ -63,6 +63,7 @@ public class MazeView extends View {
             this.count = cells.length;
 
             mCellWidth = (getWidth() - mBorderWidth * 2) / count;
+//            mBorderPath = Math.max(mCellWidth, 20);
 
             mBorderPath.reset();
             mBorderPath.moveTo(0, 0);

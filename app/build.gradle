@@ -39,7 +39,6 @@ android {
             shrinkResources false
             zipAlignEnabled false
             versionNameSuffix '.debug'
-            applicationIdSuffix '.debug' // @link{http://hugozhu.myalert.info/2014/08/03/50-use-gradle-to-customize-apk-build.html}
             buildConfigField "boolean", "LOG_DEBUG", "true"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -49,7 +48,7 @@ android {
             minifyEnabled true
             shrinkResources true
             zipAlignEnabled true
-            versionNameSuffix '.beta'
+            versionNameSuffix '.release'
             buildConfigField "boolean", "LOG_DEBUG", "false"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
