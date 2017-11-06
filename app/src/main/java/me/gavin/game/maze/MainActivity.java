@@ -8,10 +8,12 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import me.gavin.game.maze.util.InputUtil;
 import me.gavin.game.maze.util.SPUtil;
 import me.gavin.game.rocker.RockerView;
 
@@ -76,7 +78,7 @@ public class MainActivity extends Activity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                createMaze(SPUtil.getInt("lineCount", 10));
+                createMaze(SPUtil.getInt("lineCount", 2));
                 return true;
             case R.id.action_config:
                 showDiyDialog();
@@ -89,22 +91,24 @@ public class MainActivity extends Activity {
     private void onComplete(int count) {
         int doneCount = SPUtil.getInt("doneCount", 0) + 1;
         SPUtil.saveInt("doneCount", doneCount);
-        if (doneCount == 5) {
+        if (doneCount % 10 == 0 && SPUtil.getInt("feedback", 0) == 0) {
             new AlertDialog.Builder(this)
                     .setTitle("恭喜过关")
-                    .setMessage("给个好评？")
+                    .setMessage("亲，赏脸给个好评呗？")
                     .setPositiveButton("去评价", (dialog, which)
                             -> goToMarket())
-                    .setNegativeButton("再来一局", (dialog, which)
+                    .setNegativeButton("下一局", (dialog, which)
                             -> createMaze(count + 2))
-                    .setNeutralButton("自定义", (dialog, which)
-                            -> showDiyDialog())
+                    .setNeutralButton("不再提醒", (dialog, which) -> {
+                        SPUtil.saveInt("feedback", 2);
+                        createMaze(count + 2);
+                    })
                     .show();
         } else {
             new AlertDialog.Builder(this)
                     .setTitle("恭喜过关")
                     .setMessage("少年看你骨骼惊奇，不如再来一局？")
-                    .setPositiveButton("再来一局", (dialog, which)
+                    .setPositiveButton("下一局", (dialog, which)
                             -> createMaze(count + 2))
                     .setNegativeButton("取消", null)
                     .setNeutralButton("自定义", (dialog, which)
@@ -115,38 +119,48 @@ public class MainActivity extends Activity {
 
     private void showDiyDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_diy, null);
-        new AlertDialog.Builder(this)
+        EditText editText = view.findViewById(R.id.editText);
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle("自定义难度")
                 .setView(view)
-                .setPositiveButton("确定", (dialog, which) -> {
-                    EditText editText = view.findViewById(R.id.editText);
-                    try {
-                        int count = Integer.parseInt(editText.getText().toString());
-                        if (count <= 1) {
-                            Toast.makeText(this, "请输入大于 1 小于 1000 的有效数字", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        createMaze(count);
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(this, "请输入大于 1 小于 1000 的有效数字", Toast.LENGTH_LONG).show();
-                    }
-                })
+                .setPositiveButton("确定", (dialog, which)
+                        -> tryCreate(editText.getText().toString()))
                 .setNegativeButton("取消", null)
                 .show();
+        editText.postDelayed(() -> InputUtil.show(this, editText), 100);
+        editText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                alertDialog.dismiss();
+                tryCreate(editText.getText().toString());
+            }
+            return true;
+        });
+    }
+
+    private void tryCreate(String numStr) {
+        try {
+            int count = Integer.parseInt(numStr);
+            if (count <= 1) {
+                Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
+            } else {
+                createMaze(count);
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
      * 去手机应用市场
      */
     private void goToMarket() {
-        //这里开始执行一个应用市场跳转逻辑，默认this为Context上下文对象
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("market://details?id=" + getPackageName())); //跳转到应用市场，非Google Play市场一般情况也实现了这个接口
-        //存在手机里没安装应用市场的情况，跳转会包异常，做一个接收判断
         if (intent.resolveActivity(getPackageManager()) != null) { //可以接收
             startActivity(intent);
+            SPUtil.saveInt("feedback", 1);
         } else {
-            Toast.makeText(this, "连应用市场都没有，这我没法接", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "连应用市场都没有，你这是存心过不去啊", Toast.LENGTH_LONG).show();
         }
     }
 }

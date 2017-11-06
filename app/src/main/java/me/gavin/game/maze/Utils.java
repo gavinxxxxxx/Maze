@@ -23,15 +23,17 @@ class Utils {
                     cells[x][y].addFlag(Cell.FLAG_BOTTOM);
             }
         }
-        List<Cell> yet = new ArrayList<>();
-        yet.add(cells[0][0]);
-        List<Cell> able = new ArrayList<>();
-        able.add(cells[0][0]);
-
         Random random = new Random(System.nanoTime());
+
+        List<Cell> yet = new ArrayList<>();
+        List<Cell> able = new ArrayList<>();
+
+        Cell curr = cells[random.nextInt(xc)][random.nextInt(yc)];
+        yet.add(curr);
+        able.add(curr);
+
         List<Cell> neighbor = new ArrayList<>();
         while (yet.size() < xc * yc) {
-            Cell curr = able.get(random.nextInt(able.size()));
             neighbor.clear();
             if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y]))
                 neighbor.add(cells[curr.x - 1][curr.y]);
@@ -58,8 +60,11 @@ class Utils {
                 }
                 yet.add(next);
                 able.add(next);
+                // 80% 几率沿用
+                curr = random.nextInt(100) < 80 ? next : able.get(random.nextInt(able.size()));
             } else {
                 able.remove(curr);
+                curr = able.get(random.nextInt(able.size()));
             }
         }
         return cells;

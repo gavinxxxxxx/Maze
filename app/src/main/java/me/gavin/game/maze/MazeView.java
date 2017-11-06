@@ -18,7 +18,7 @@ import me.gavin.game.rocker.IntConsumer;
  */
 public class MazeView extends View {
 
-    private final float mBorderWidth = 20;
+    private float mBorderWidth;
 
     private int count = 30;
     private Cell[][] mCells;
@@ -62,26 +62,27 @@ public class MazeView extends View {
         if (cells != null) {
             this.count = cells.length;
 
+            mBorderWidth = Math.max(getWidth() / (count + 1) * mWellScale, 20f);
             mCellWidth = (getWidth() - mBorderWidth * 2) / count;
-//            mBorderPath = Math.max(mCellWidth, 20);
+            float wellWidth = mCellWidth * mWellScale;
 
             mBorderPath.reset();
             mBorderPath.moveTo(0, 0);
             mBorderPath.rLineTo(mBorderWidth, 0);
             mBorderPath.rLineTo(0, getWidth() - mBorderWidth);
-            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth, 0);
+            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth + wellWidth / 2, 0);
             mBorderPath.rLineTo(0, mBorderWidth);
-            mBorderPath.rLineTo(-getWidth() + mBorderWidth + mCellWidth, 0);
+            mBorderPath.rLineTo(mBorderWidth + mCellWidth - getWidth() - wellWidth / 2, 0);
             mBorderPath.rLineTo(0, -getWidth());
-            mBorderPath.rMoveTo(mBorderWidth + mCellWidth, 0);
+            mBorderPath.rMoveTo(mBorderWidth + mCellWidth - wellWidth / 2, 0);
             mBorderPath.rLineTo(0, mBorderWidth);
-            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth, 0);
+            mBorderPath.rLineTo(getWidth() - mBorderWidth * 2 - mCellWidth + wellWidth / 2, 0);
             mBorderPath.rLineTo(0, getWidth() - mBorderWidth);
             mBorderPath.rLineTo(mBorderWidth, 0);
             mBorderPath.rLineTo(0, -getWidth());
             mBorderPath.close();
 
-            mWellPaint.setStrokeWidth(mCellWidth * mWellScale);
+            mWellPaint.setStrokeWidth(wellWidth);
             mWellPath = Utils.toPath(cells, mCellWidth, mBorderWidth);
 
             mCursorPoint = new Point(0, 0);
