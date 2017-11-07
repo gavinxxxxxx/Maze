@@ -30,6 +30,8 @@ public class MainActivity extends Activity {
     MazeView mazeView;
     ProgressBar progressBar;
 
+    private boolean isInProgress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +57,7 @@ public class MainActivity extends Activity {
                     break;
             }
         });
-        createMaze(SPUtil.getInt("lineCount", 2));
+        createMaze(Math.min(SPUtil.getInt("lineCount", 2), 100));
     }
 
     public void createMaze2(int count) {
@@ -84,9 +86,11 @@ public class MainActivity extends Activity {
         if (count > 100) {
             Toast.makeText(this, "地图生成中，生成单列大于 100 的地图将消耗大量时间，请耐心等候", Toast.LENGTH_LONG).show();
         }
+        isInProgress = true;
         new Thread(() -> {
             Cell[][] cells = prim(count, count);
             mazeView.post(() -> {
+                isInProgress = false;
                 mazeView.setCells(cells, this::onComplete);
                 progressBar.setVisibility(View.GONE);
                 getActionBar().setSubtitle(String.format("%s x %s", count, count));
@@ -104,13 +108,18 @@ public class MainActivity extends Activity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                createMaze(SPUtil.getInt("lineCount", 2));
+                if (isInProgress) {
+                    Toast.makeText(this, "迷宫生成中，请稍候...", Toast.LENGTH_LONG).show();
+                } else {
+                    createMaze(SPUtil.getInt("lineCount", 2));
+                }
                 return true;
-//            case R.id.action_refresh2:
-//                createMaze2(SPUtil.getInt("lineCount", 2));
-//                return true;
             case R.id.action_config:
-                showDiyDialog();
+                if (isInProgress) {
+                    Toast.makeText(this, "迷宫生成中，请稍候...", Toast.LENGTH_LONG).show();
+                } else {
+                    showDiyDialog();
+                }
                 return true;
             default:
                 return false;
@@ -166,13 +175,13 @@ public class MainActivity extends Activity {
     private void tryCreate(String numStr) {
         try {
             int count = Integer.parseInt(numStr);
-            if (count <= 1) {
-                Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
+            if (count <= 1 || count > 200) {
+                Toast.makeText(this, "请输入大于 1 小于等于 200 的整数", Toast.LENGTH_LONG).show();
             } else {
                 createMaze(count);
             }
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "请输入大于 1 小于等于 200 的整数", Toast.LENGTH_LONG).show();
         }
     }
 
