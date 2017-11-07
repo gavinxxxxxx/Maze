@@ -16,6 +16,7 @@ public class Cell {
     int y;
 
     private int flag;
+    int index;
 
     public Cell(int x, int y) {
         this.x = x;

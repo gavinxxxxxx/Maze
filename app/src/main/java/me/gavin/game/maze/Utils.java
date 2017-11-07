@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import me.gavin.game.maze.util.L;
+
 
 class Utils {
 
@@ -13,6 +15,8 @@ class Utils {
      * 随机米空生成 -  普里姆算法
      */
     static Cell[][] prim(int xc, int yc) {
+        long start = System.currentTimeMillis();
+
         Cell[][] cells = new Cell[xc][yc];
         for (int x = 0; x < xc; x++) {
             for (int y = 0; y < yc; y++) {
@@ -67,6 +71,7 @@ class Utils {
                 curr = able.get(random.nextInt(able.size()));
             }
         }
+        L.e(xc + "x" + yc + " - " + (System.currentTimeMillis() - start));
         return cells;
     }
 
