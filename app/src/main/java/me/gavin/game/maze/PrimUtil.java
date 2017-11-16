@@ -8,12 +8,13 @@ import java.util.Random;
 
 import me.gavin.game.maze.util.L;
 
+/**
+ * 随机迷宫生成 - 普里姆算法
+ *
+ * @author gavin.xiong 2017/11/16
+ */
+final class PrimUtil {
 
-class Utils {
-
-    /**
-     * 随机米空生成 -  普里姆算法
-     */
     static Cell[][] prim(int xc, int yc) {
         long start = System.currentTimeMillis();
 

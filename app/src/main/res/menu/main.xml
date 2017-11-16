@@ -5,7 +5,7 @@
         <!--android:id="@+id/action_refresh2"-->
         <!--android:icon="@drawable/ic_launcher"-->
         <!--android:showAsAction="always"-->
-        <!--android:title="刷新" />-->
+        <!--android:title="测试" />-->
 
     <item
         android:id="@+id/action_refresh"

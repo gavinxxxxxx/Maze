@@ -83,7 +83,7 @@ public class MazeView extends View {
             mBorderPath.close();
 
             mWellPaint.setStrokeWidth(wellWidth);
-            mWellPath = Utils.toPath(cells, mCellWidth, mBorderWidth);
+            mWellPath = PrimUtil.toPath(cells, mCellWidth, mBorderWidth);
 
             mCursorPoint = new Point(0, 0);
         }
