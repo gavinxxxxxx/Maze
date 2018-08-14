@@ -23,9 +23,9 @@ final class PrimUtil {
             for (int y = 0; y < yc; y++) {
                 cells[x][y] = new Cell(x, y);
                 if (x == 0 && y == 0)
-                    cells[x][y].addFlag(Cell.FLAG_TOP);
+                    cells[x][y].add(Cell.FLAG_TOP);
                 else if (x == xc - 1 && y == yc - 1)
-                    cells[x][y].addFlag(Cell.FLAG_BOTTOM);
+                    cells[x][y].add(Cell.FLAG_BOTTOM);
             }
         }
         Random random = new Random(System.nanoTime());
@@ -51,17 +51,17 @@ final class PrimUtil {
             if (!neighbor.isEmpty()) {
                 Cell next = neighbor.get(random.nextInt(neighbor.size()));
                 if (next.leftOf(curr)) {
-                    curr.addFlag(Cell.FLAG_LEFT);
-                    next.addFlag(Cell.FLAG_RIGHT);
+                    curr.add(Cell.FLAG_LEFT);
+                    next.add(Cell.FLAG_RIGHT);
                 } else if (next.rightOf(curr)) {
-                    curr.addFlag(Cell.FLAG_RIGHT);
-                    next.addFlag(Cell.FLAG_LEFT);
+                    curr.add(Cell.FLAG_RIGHT);
+                    next.add(Cell.FLAG_LEFT);
                 } else if (next.topOf(curr)) {
-                    curr.addFlag(Cell.FLAG_TOP);
-                    next.addFlag(Cell.FLAG_BOTTOM);
+                    curr.add(Cell.FLAG_TOP);
+                    next.add(Cell.FLAG_BOTTOM);
                 } else if (next.bottomOf(curr)) {
-                    curr.addFlag(Cell.FLAG_BOTTOM);
-                    next.addFlag(Cell.FLAG_TOP);
+                    curr.add(Cell.FLAG_BOTTOM);
+                    next.add(Cell.FLAG_TOP);
                 }
                 yet.add(next);
                 able.add(next);
@@ -81,11 +81,11 @@ final class PrimUtil {
         for (int x = 0; x < mCells.length; x++) {
             for (int y = 0; y < mCells[x].length; y++) {
                 Cell cell = mCells[x][y];
-                if (x > 0 && !cell.containFlag(Cell.FLAG_LEFT)) {
+                if (x > 0 && !cell.contain(Cell.FLAG_LEFT)) {
                     path.moveTo(x * width, y * width);
                     path.lineTo(x * width, y * width + width);
                 }
-                if (y > 0 && !cell.containFlag(Cell.FLAG_TOP)) {
+                if (y > 0 && !cell.contain(Cell.FLAG_TOP)) {
                     path.moveTo(x * width, y * width);
                     path.lineTo(x * width + width, y * width);
                 }

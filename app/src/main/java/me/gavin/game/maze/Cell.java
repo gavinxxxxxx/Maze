@@ -23,11 +23,11 @@ public class Cell {
         this.y = y;
     }
 
-    void addFlag(int flag) {
+    void add(int flag) {
         this.flag |= flag;
     }
 
-    boolean containFlag(int flag) {
+    boolean contain(int flag) {
         return (this.flag & flag) == flag;
     }
 

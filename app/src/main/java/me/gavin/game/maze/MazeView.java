@@ -109,7 +109,7 @@ public class MazeView extends View {
     }
 
     public void left() {
-        if (isReady && mCursorPoint.x > 0 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_LEFT)) {
+        if (isReady && mCursorPoint.x > 0 && mCells[mCursorPoint.x][mCursorPoint.y].contain(Cell.FLAG_LEFT)) {
             mCursorPoint.offset(-1, 0);
             invalidate();
             check();
@@ -117,7 +117,7 @@ public class MazeView extends View {
     }
 
     public void up() {
-        if (isReady && mCursorPoint.y > 0 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_TOP)) {
+        if (isReady && mCursorPoint.y > 0 && mCells[mCursorPoint.x][mCursorPoint.y].contain(Cell.FLAG_TOP)) {
             mCursorPoint.offset(0, -1);
             invalidate();
             check();
@@ -125,7 +125,7 @@ public class MazeView extends View {
     }
 
     public void right() {
-        if (isReady && mCursorPoint.x < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_RIGHT)) {
+        if (isReady && mCursorPoint.x < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].contain(Cell.FLAG_RIGHT)) {
             mCursorPoint.offset(1, 0);
             invalidate();
             check();
@@ -133,7 +133,7 @@ public class MazeView extends View {
     }
 
     public void down() {
-        if (isReady && mCursorPoint.y < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].containFlag(Cell.FLAG_BOTTOM)) {
+        if (isReady && mCursorPoint.y < count - 1 && mCells[mCursorPoint.x][mCursorPoint.y].contain(Cell.FLAG_BOTTOM)) {
             mCursorPoint.offset(0, 1);
             invalidate();
             check();
