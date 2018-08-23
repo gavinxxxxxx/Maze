@@ -16,33 +16,38 @@ import me.gavin.game.maze.util.L;
  */
 final class PrimUtil4ThreadPool {
 
-    private volatile Cell[][] cells;
-    private volatile List<Cell> yet;
+    private final int xc, yc, count;
 
-    private volatile Random random = new Random(System.nanoTime());
+    private final Cell[][] cells;
+    private final List<Cell> yet;
 
-    Cell[][] prim(int xc, int yc) {
+    private static final Random random = new Random(System.nanoTime());
+
+    PrimUtil4ThreadPool(int xc, int yc) {
+        this.xc = xc;
+        this.yc = yc;
+        this.count = xc * yc;
+
+        this.cells = new Cell[xc][yc];
+        this.yet = new ArrayList<>(count);
+    }
+
+    Cell[][] prim() {
         long start = System.currentTimeMillis();
-        cells = new Cell[xc][yc];
-        for (int x = 0; x < xc; x++) {
-            for (int y = 0; y < yc; y++) {
-                cells[x][y] = new Cell(x, y);
-                if (x == 0 && y == 0)
-                    cells[x][y].add(Cell.FLAG_TOP);
-                if (x == xc - 1 && y == yc - 1)
-                    cells[x][y].add(Cell.FLAG_BOTTOM);
-            }
-        }
 
-        yet = new ArrayList<>();
+        for (int x = 0; x < xc; x++)
+            for (int y = 0; y < yc; y++)
+                cells[x][y] = new Cell(x, y);
+        cells[0][0].add(Cell.FLAG_TOP);
+        cells[xc - 1][yc - 1].add(Cell.FLAG_BOTTOM);
 
         ExecutorService executor = Executors.newCachedThreadPool();
-        int poolCount = Math.min(30, xc * yc / 1024 + 1);
+        int poolCount = Math.min(30, count / 1024 + 1);
         for (int i = 0; i < poolCount; i++) {
-            Cell curr = random(xc, yc, 0);
+            Cell curr = random(0);
             if (curr != null) {
                 curr.index = 1 << i;
-                executor.execute(new MyRunnable(curr, xc, yc, 1 << i));
+                executor.execute(new IRunnable(curr));
             }
         }
         executor.shutdown();
@@ -73,48 +78,47 @@ final class PrimUtil4ThreadPool {
     }
 
     private synchronized boolean add(Cell next) {
-        if (!yet.contains(next)) {
+        if (!next.contain(Cell.FLAG_YET)) {
+            next.add(Cell.FLAG_YET);
             yet.add(next);
             return true;
         }
         return false;
     }
 
-    private Cell random(int xc, int yc, int count) {
-        if (count > 3) return null;
+    private Cell random(int times) {
+        if (times > 3) return null;
         Cell curr = cells[random.nextInt(xc)][random.nextInt(yc)];
-        return !yet.contains(curr) ? curr : random(xc, yc, count + 1);
+        return !curr.contain(Cell.FLAG_YET) ? curr : random(times + 1);
     }
 
-    private class MyRunnable implements Runnable {
+    private class IRunnable implements Runnable {
 
-        Cell curr;
-        final int xc, yc;
-        final int index;
-        final List<Cell> able;
+        private final int index;
+        private Cell curr;
+        private final List<Cell> able;
 
-        MyRunnable(Cell curr, int xc, int yc, int index) {
+        IRunnable(Cell curr) {
+            this.index = curr.index;
             this.curr = curr;
-            this.xc = xc;
-            this.yc = yc;
-            this.index = index;
-            able = new ArrayList<>();
+            this.able = new ArrayList<>(count / 1024);
+
             add(curr);
-            able.add(curr);
+            this.able.add(curr);
         }
 
         @Override
         public void run() {
-            List<Cell> neighbor = new ArrayList<>();
-            while (curr != null && yet.size() < xc * yc) {
+            List<Cell> neighbor = new ArrayList<>(4);
+            while (curr != null && yet.size() < count) {
                 neighbor.clear();
-                if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y]))
+                if (curr.x > 0 && !cells[curr.x - 1][curr.y].contain(Cell.FLAG_YET))
                     neighbor.add(cells[curr.x - 1][curr.y]);
-                if (curr.x < xc - 1 && !yet.contains(cells[curr.x + 1][curr.y]))
+                if (curr.x < xc - 1 && !cells[curr.x + 1][curr.y].contain(Cell.FLAG_YET))
                     neighbor.add(cells[curr.x + 1][curr.y]);
-                if (curr.y > 0 && !yet.contains(cells[curr.x][curr.y - 1]))
+                if (curr.y > 0 && !cells[curr.x][curr.y - 1].contain(Cell.FLAG_YET))
                     neighbor.add(cells[curr.x][curr.y - 1]);
-                if (curr.y < yc - 1 && !yet.contains(cells[curr.x][curr.y + 1]))
+                if (curr.y < yc - 1 && !cells[curr.x][curr.y + 1].contain(Cell.FLAG_YET))
                     neighbor.add(cells[curr.x][curr.y + 1]);
                 if (!neighbor.isEmpty()) {
                     Cell next = neighbor.get(random.nextInt(neighbor.size()));
@@ -133,7 +137,8 @@ final class PrimUtil4ThreadPool {
                         } else if (next.bottomOf(curr)) {
                             curr.add(Cell.FLAG_BOTTOM);
                             next.add(Cell.FLAG_TOP);
-                        }// 80% 几率沿用
+                        }
+                        // 80% 几率沿用
                         curr = random.nextInt(100) < 80 ? next : nextAble();
                     } else {
                         curr = nextAble();

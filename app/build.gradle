@@ -10,12 +10,13 @@ def static autoVersionName() {
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
         applicationId "me.gavin.game.maze"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode autoVersionCode()
         versionName autoVersionName()
         resConfigs "zh"

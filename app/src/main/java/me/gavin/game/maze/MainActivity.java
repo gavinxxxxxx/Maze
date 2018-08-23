@@ -57,13 +57,13 @@ public class MainActivity extends Activity {
         mazeView.setCells(null, null);
         progressBar.setVisibility(View.VISIBLE);
         getActionBar().setSubtitle(String.format("%s x %s 生成中...", count, count));
-        if (count > 100) {
-            Toast.makeText(this, "地图生成中，生成单列大于 100 的地图将消耗大量时间，请耐心等候", Toast.LENGTH_LONG).show();
+        if (count > 500) {
+            Toast.makeText(this, "地图生成中，生成大于 500 x 500 的地图将消耗大量时间，请耐心等候", Toast.LENGTH_LONG).show();
         }
         isInProgress = true;
         new Thread(() -> {
             // Cell[][] cells = PrimUtil.prim(count, count);
-            Cell[][] cells = new PrimUtil4ThreadPool().prim(count, count);
+            Cell[][] cells = new PrimUtil4ThreadPool(count, count).prim();
             mazeView.post(() -> {
                 mazeView.setCells(cells, this::onComplete);
                 progressBar.setVisibility(View.GONE);
@@ -145,13 +145,13 @@ public class MainActivity extends Activity {
     private void tryCreate(String numStr) {
         try {
             int count = Integer.parseInt(numStr);
-            if (count <= 1 || count > 200) {
-                Toast.makeText(this, "请输入大于 1 小于等于 200 的整数", Toast.LENGTH_LONG).show();
+            if (count <= 1 || count >= 1000) {
+                Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
             } else {
                 createMaze(count);
             }
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "请输入大于 1 小于等于 200 的整数", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "请输入大于 1 小于 1000 的整数", Toast.LENGTH_LONG).show();
         }
     }
 

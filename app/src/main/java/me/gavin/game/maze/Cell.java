@@ -11,12 +11,13 @@ public class Cell {
     static final int FLAG_TOP = 1 << 1;
     static final int FLAG_RIGHT = 1 << 2;
     static final int FLAG_BOTTOM = 1 << 3;
+    static final int FLAG_YET = 1 << 4;
 
     int x;
     int y;
 
     private int flag;
-    int index;
+    int index; // 线程标识
 
     public Cell(int x, int y) {
         this.x = x;
@@ -46,4 +47,5 @@ public class Cell {
     boolean bottomOf(Cell o) {
         return y - o.y == 1;
     }
+
 }

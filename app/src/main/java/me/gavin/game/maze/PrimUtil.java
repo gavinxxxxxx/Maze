@@ -30,23 +30,24 @@ final class PrimUtil {
         }
         Random random = new Random(System.nanoTime());
 
-        List<Cell> yet = new ArrayList<>();
-        List<Cell> able = new ArrayList<>();
+        List<Cell> yet = new ArrayList<>(xc * yc);
+        List<Cell> able = new ArrayList<>(xc * yc / 2);
 
         Cell curr = cells[random.nextInt(xc)][random.nextInt(yc)];
+        curr.add(Cell.FLAG_YET);
         yet.add(curr);
         able.add(curr);
 
-        List<Cell> neighbor = new ArrayList<>();
+        List<Cell> neighbor = new ArrayList<>(4);
         while (yet.size() < xc * yc) {
             neighbor.clear();
-            if (curr.x > 0 && !yet.contains(cells[curr.x - 1][curr.y]))
+            if (curr.x > 0 && !cells[curr.x - 1][curr.y].contain(Cell.FLAG_YET))
                 neighbor.add(cells[curr.x - 1][curr.y]);
-            if (curr.x < xc - 1 && !yet.contains(cells[curr.x + 1][curr.y]))
+            if (curr.x < xc - 1 && !cells[curr.x + 1][curr.y].contain(Cell.FLAG_YET))
                 neighbor.add(cells[curr.x + 1][curr.y]);
-            if (curr.y > 0 && !yet.contains(cells[curr.x][curr.y - 1]))
+            if (curr.y > 0 && !cells[curr.x][curr.y - 1].contain(Cell.FLAG_YET))
                 neighbor.add(cells[curr.x][curr.y - 1]);
-            if (curr.y < yc - 1 && !yet.contains(cells[curr.x][curr.y + 1]))
+            if (curr.y < yc - 1 && !cells[curr.x][curr.y + 1].contain(Cell.FLAG_YET))
                 neighbor.add(cells[curr.x][curr.y + 1]);
             if (!neighbor.isEmpty()) {
                 Cell next = neighbor.get(random.nextInt(neighbor.size()));
@@ -63,6 +64,7 @@ final class PrimUtil {
                     curr.add(Cell.FLAG_BOTTOM);
                     next.add(Cell.FLAG_TOP);
                 }
+                next.add(Cell.FLAG_YET);
                 yet.add(next);
                 able.add(next);
                 // 80% 几率沿用
@@ -94,4 +96,5 @@ final class PrimUtil {
         path.offset(offset, offset);
         return path;
     }
+
 }
